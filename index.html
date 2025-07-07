@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test WebApp</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .primary { background: #007bff; color: white; }
+        .success { background: #28a745; color: white; }
+        .info { background: #17a2b8; color: white; }
+        #status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            background: #f8f9fa;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h2>WebApp Debug Test</h2>
+    
+    <div id="status">Loading...</div>
+    
+    <button class="primary" onclick="sendTestData()">Send Test Data</button>
+    <button class="success" onclick="sendMinimalData()">Send Minimal Data</button>
+    <button class="info" onclick="checkWebApp()">Check WebApp Status</button>
+    
+    <script>
+        const tg = window.Telegram.WebApp;
+        const status = document.getElementById('status');
+        
+        // Initialize
+        tg.ready();
+        tg.expand();
+        
+        function log(message) {
+            status.textContent += message + '\n';
+            console.log(message);
+        }
+        
+        function checkWebApp() {
+            status.textContent = '';
+            log('=== WebApp Status ===');
+            log(`Ready: ${tg.isReady}`);
+            log(`Version: ${tg.version}`);
+            log(`Platform: ${tg.platform}`);
+            log(`Color Scheme: ${tg.colorScheme}`);
+            log(`Init Data: ${tg.initData ? 'Present' : 'Missing'}`);
+            log(`User: ${JSON.stringify(tg.initDataUnsafe?.user || 'Not available')}`);
+        }
+        
+        function sendMinimalData() {
+            status.textContent = '';
+            log('=== Sending Minimal Data ===');
+            
+            const data = {
+                test: true,
+                timestamp: new Date().toISOString()
+            };
+            
+            log(`Data: ${JSON.stringify(data)}`);
+            log(`Size: ${JSON.stringify(data).length} bytes`);
+            
+            try {
+                tg.sendData(JSON.stringify(data));
+                log('✅ Data sent successfully!');
+                
+                setTimeout(() => {
+                    tg.close();
+                }, 1000);
+            } catch (error) {
+                log(`❌ Error: ${error.message}`);
+            }
+        }
+        
+        function sendTestData() {
+            status.textContent = '';
+            log('=== Sending Test Data ===');
+            
+            const data = {
+                goal: "Test Goal",
+                gender: "Test",
+                age: 25,
+                height: 170,
+                weight: 70,
+                targetWeight: 65,
+                timeframe: 3,
+                activity: "Test Activity",
+                restrictions: ["None"],
+                preferences: "Test preferences",
+                timestamp: new Date().toISOString()
+            };
+            
+            log(`Data: ${JSON.stringify(data, null, 2)}`);
+            log(`Size: ${JSON.stringify(data).length} bytes`);
+            
+            try {
+                tg.sendData(JSON.stringify(data));
+                log('✅ Data sent successfully!');
+                
+                setTimeout(() => {
+                    tg.close();
+                }, 1000);
+            } catch (error) {
+                log(`❌ Error: ${error.message}`);
+            }
+        }
+        
+        // Initial check
+        checkWebApp();
+    </script>
+</body>
+</html>
