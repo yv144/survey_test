@@ -1,132 +1,731 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test WebApp</title>
+    <title>FitBot - Персональный опрос</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            max-width: 400px;
-            margin: 0 auto;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        button {
-            width: 100%;
-            padding: 15px;
-            margin: 10px 0;
-            border: none;
-            border-radius: 5px;
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.2);
+            height: 6px;
+            border-radius: 3px;
+            margin-bottom: 30px;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 3px;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.5);
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(20px);
+            transform: translateY(20px);
+            opacity: 0;
+            animation: slideIn 0.5s forwards;
+        }
+
+        @keyframes slideIn {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .step-indicator {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+        }
+
+        h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 700;
+        }
+
+        .subtitle {
             font-size: 16px;
+            color: #666;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        input[type="number"],
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s;
+            background: #f8f9fa;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .radio-group,
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .radio-option,
+        .checkbox-option {
+            display: flex;
+            align-items: center;
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8f9fa;
+        }
+
+        .radio-option:hover,
+        .checkbox-option:hover {
+            border-color: #667eea;
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        }
+
+        .radio-option input,
+        .checkbox-option input {
+            margin-right: 12px;
             cursor: pointer;
         }
-        .primary { background: #007bff; color: white; }
-        .success { background: #28a745; color: white; }
-        .info { background: #17a2b8; color: white; }
-        #status {
+
+        .radio-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+        }
+
+        .checkbox-option input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+        }
+
+        .radio-option.selected,
+        .checkbox-option.selected {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #666;
+            margin-right: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .insight-box {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 16px;
             margin: 20px 0;
-            padding: 15px;
-            border-radius: 5px;
-            background: #f8f9fa;
-            font-family: monospace;
-            font-size: 12px;
-            white-space: pre-wrap;
+            font-size: 14px;
+            line-height: 1.6;
+            animation: pulse 2s infinite;
+            box-shadow: 0 10px 30px rgba(245, 87, 108, 0.3);
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.02);
+            }
+        }
+
+        .emoji {
+            font-size: 24px;
+            margin-right: 8px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(102, 126, 234, 0.2);
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .success-animation {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: successPop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes successPop {
+            0% {
+                transform: scale(0);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .success-animation::after {
+            content: "✓";
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            h2 {
+                font-size: 20px;
+            }
+            
+            .subtitle {
+                font-size: 14px;
+            }
         }
     </style>
 </head>
 <body>
-    <h2>WebApp Debug Test</h2>
-    
-    <div id="status">Loading...</div>
-    
-    <button class="primary" onclick="sendTestData()">Send Test Data</button>
-    <button class="success" onclick="sendMinimalData()">Send Minimal Data</button>
-    <button class="info" onclick="checkWebApp()">Check WebApp Status</button>
-    
+    <div class="container">
+        <div class="step-indicator" id="stepIndicator">Шаг 1 из 8</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar" style="width: 12.5%"></div>
+        </div>
+
+        <div class="card">
+            <!-- Step 1: Goal -->
+            <div class="step" id="step1">
+                <h2><span class="emoji">🎯</span>Какая твоя цель?</h2>
+                <p class="subtitle">Это поможет мне создать идеальный план именно для тебя</p>
+                <div class="radio-group">
+                    <label class="radio-option">
+                        <input type="radio" name="goal" value="lose_weight">
+                        <span>🔥 Похудеть</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="goal" value="gain_muscle">
+                        <span>💪 Набрать мышечную массу</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="goal" value="maintain">
+                        <span>⚖️ Поддерживать текущий вес</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Step 2: Basic Info -->
+            <div class="step hidden" id="step2">
+                <h2><span class="emoji">📊</span>Основная информация</h2>
+                <p class="subtitle">Нужна для расчета калорий и БЖУ</p>
+                <div class="form-group">
+                    <label>Возраст</label>
+                    <input type="number" id="age" min="10" max="100" placeholder="25">
+                </div>
+                <div class="form-group">
+                    <label>Пол</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="gender" value="male">
+                            <span>👨 Мужской</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="gender" value="female">
+                            <span>👩 Женский</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="gender" value="prefer_not_to_say">
+                            <span>🤐 Предпочитаю не говорить</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Physical Parameters -->
+            <div class="step hidden" id="step3">
+                <h2><span class="emoji">📏</span>Физические параметры</h2>
+                <p class="subtitle">Для точного расчета твоей нормы</p>
+                <div class="form-group">
+                    <label>Рост (см)</label>
+                    <input type="number" id="height" min="100" max="250" placeholder="175">
+                </div>
+                <div class="form-group">
+                    <label>Вес (кг)</label>
+                    <input type="number" id="weight" min="30" max="300" step="0.1" placeholder="70">
+                </div>
+            </div>
+
+            <!-- Step 4: Activity Level -->
+            <div class="step hidden" id="step4">
+                <h2><span class="emoji">🏃</span>Уровень активности</h2>
+                <p class="subtitle">Сколько ты двигаешься в течение дня?</p>
+                <div class="radio-group">
+                    <label class="radio-option">
+                        <input type="radio" name="activity" value="sedentary">
+                        <span>🪑 Сидячий образ жизни</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="activity" value="light">
+                        <span>🚶 Легкая активность (1-3 дня в неделю)</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="activity" value="moderate">
+                        <span>🏃‍♀️ Умеренная активность (3-5 дней)</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="activity" value="active">
+                        <span>🏋️ Высокая активность (6-7 дней)</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Step 5: Target Weight -->
+            <div class="step hidden" id="step5">
+                <h2><span class="emoji">🎯</span>Целевой вес</h2>
+                <p class="subtitle">К какому весу ты стремишься?</p>
+                <div class="form-group">
+                    <label>Желаемый вес (кг)</label>
+                    <input type="number" id="targetWeight" min="30" max="300" step="0.1" placeholder="65">
+                </div>
+                <div class="form-group">
+                    <label>За какой срок хочешь достичь цели?</label>
+                    <select id="timeline">
+                        <option value="1">1 месяц</option>
+                        <option value="2">2 месяца</option>
+                        <option value="3" selected>3 месяца</option>
+                        <option value="6">6 месяцев</option>
+                        <option value="12">1 год</option>
+                    </select>
+                </div>
+                <div class="insight-box hidden" id="timelineInsight"></div>
+            </div>
+
+            <!-- Step 6: Food Restrictions -->
+            <div class="step hidden" id="step6">
+                <h2><span class="emoji">🚫</span>Ограничения в питании</h2>
+                <p class="subtitle">Что исключить из твоего рациона?</p>
+                <div class="checkbox-group">
+                    <label class="checkbox-option">
+                        <input type="checkbox" name="restrictions" value="meat">
+                        <span>🥩 Мясо</span>
+                    </label>
+					<label class="checkbox-option">
+						<input type="checkbox" name="restrictions" value="pork">
+						<span>🐷 Свинина</span>
+					</label>
+                    <label class="checkbox-option">
+                        <input type="checkbox" name="restrictions" value="fish">
+                        <span>🐟 Рыба</span>
+                    </label>
+                    <label class="checkbox-option">
+                        <input type="checkbox" name="restrictions" value="dairy">
+                        <span>🥛 Молочные продукты</span>
+                    </label>
+                    <label class="checkbox-option">
+                        <input type="checkbox" name="restrictions" value="eggs">
+                        <span>🥚 Яйца</span>
+                    </label>
+                    <label class="checkbox-option">
+                        <input type="checkbox" name="restrictions" value="gluten">
+                        <span>🌾 Глютен</span>
+                    </label>
+					<label class="checkbox-option">
+						<input type="checkbox" name="restrictions" value="flour_products">
+						<span>🍞 Мучное</span>
+					</label>		
+                    <label class="checkbox-option">
+                        <input type="checkbox" name="restrictions" value="nuts">
+                        <span>🥜 Орехи</span>
+                    </label>
+					<label class="checkbox-option">
+						<input type="checkbox" name="restrictions" value="citrus">
+						<span>🍊 Цитрусовые</span>
+					</label>
+                </div>
+				
+								<!-- Add this new section for freeform input -->
+				<div class="form-group" style="margin-top: 25px;">
+					<label>Другие продукты, которые ты не любишь или не можешь есть:</label>
+					<input type="text" id="additionalRestrictions" placeholder="Например: грибы, баклажаны, острое">
+					<small style="color: #666; margin-top: 5px; display: block;">Перечисли через запятую</small>
+				</div>
+				
+            </div>
+
+            <!-- Step 7: Preferred Foods -->
+            <div class="step hidden" id="step7">
+                <h2><span class="emoji">😋</span>Любимые продукты</h2>
+                <p class="subtitle">Что ты любишь есть? Я постараюсь включить это в план</p>
+                <div class="form-group">
+                    <input type="text" id="preferredFoods" placeholder="Например: курица, гречка, яблоки">
+                    <small style="color: #666; margin-top: 5px; display: block;">Перечисли через запятую</small>
+                </div>
+            </div>
+
+            <!-- Step 8: Summary -->
+            <div class="step hidden" id="step8">
+                <h2><span class="emoji">✅</span>Проверь данные</h2>
+                <p class="subtitle">Всё верно?</p>
+                <div id="summary" style="background: #f8f9fa; padding: 20px; border-radius: 12px; margin-bottom: 20px;"></div>
+            </div>
+
+            <!-- Success -->
+            <div class="step hidden" id="success">
+                <div class="success-animation"></div>
+                <h2 style="text-align: center;">Отлично! 🎉</h2>
+                <p class="subtitle" style="text-align: center;">Данные отправлены. Возвращайся в бот для продолжения!</p>
+            </div>
+
+            <!-- Navigation -->
+            <div class="navigation" id="navigation">
+                <button class="btn btn-secondary hidden" id="prevBtn" onclick="previousStep()">Назад</button>
+                <button class="btn btn-primary" id="nextBtn" onclick="nextStep()">Далее</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Initialize Telegram WebApp
         const tg = window.Telegram.WebApp;
-        const status = document.getElementById('status');
-        
-        // Initialize
         tg.ready();
         tg.expand();
-        
-        function log(message) {
-            status.textContent += message + '\n';
-            console.log(message);
+
+        // Current step
+        let currentStep = 1;
+        const totalSteps = 8;
+
+        // User data
+        let userData = {
+            user_id: new URLSearchParams(window.location.search).get('user_id') || 0
+        };
+
+        // Update radio/checkbox visual state
+        document.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach(input => {
+            input.addEventListener('change', function() {
+                if (this.type === 'radio') {
+                    document.querySelectorAll(`input[name="${this.name}"]`).forEach(radio => {
+                        radio.closest('.radio-option').classList.remove('selected');
+                    });
+                }
+                this.closest('.radio-option, .checkbox-option')?.classList.toggle('selected', this.checked);
+            });
+        });
+
+        function updateProgress() {
+            const progress = (currentStep / totalSteps) * 100;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+            document.getElementById('stepIndicator').textContent = `Шаг ${currentStep} из ${totalSteps}`;
         }
-        
-        function checkWebApp() {
-            status.textContent = '';
-            log('=== WebApp Status ===');
-            log(`Ready: ${tg.isReady}`);
-            log(`Version: ${tg.version}`);
-            log(`Platform: ${tg.platform}`);
-            log(`Color Scheme: ${tg.colorScheme}`);
-            log(`Init Data: ${tg.initData ? 'Present' : 'Missing'}`);
-            log(`User: ${JSON.stringify(tg.initDataUnsafe?.user || 'Not available')}`);
-        }
-        
-        function sendMinimalData() {
-            status.textContent = '';
-            log('=== Sending Minimal Data ===');
-            
-            const data = {
-                test: true,
-                timestamp: new Date().toISOString()
-            };
-            
-            log(`Data: ${JSON.stringify(data)}`);
-            log(`Size: ${JSON.stringify(data).length} bytes`);
-            
-            try {
-                tg.sendData(JSON.stringify(data));
-                log('✅ Data sent successfully!');
-                
-                setTimeout(() => {
-                    tg.close();
-                }, 1000);
-            } catch (error) {
-                log(`❌ Error: ${error.message}`);
+
+        function validateStep() {
+            switch(currentStep) {
+                case 1:
+                    return document.querySelector('input[name="goal"]:checked');
+                case 2:
+                    return document.getElementById('age').value && 
+                           document.querySelector('input[name="gender"]:checked');
+                case 3:
+                    return document.getElementById('height').value && 
+                           document.getElementById('weight').value;
+                case 4:
+                    return document.querySelector('input[name="activity"]:checked');
+                case 5:
+                    return document.getElementById('targetWeight').value;
+                case 6:
+                case 7:
+                    return true; // Optional steps
+                case 8:
+                    return true;
+                default:
+                    return false;
             }
         }
-        
-        function sendTestData() {
-            status.textContent = '';
-            log('=== Sending Test Data ===');
-            
-            const data = {
-                goal: "Test Goal",
-                gender: "Test",
-                age: 25,
-                height: 170,
-                weight: 70,
-                targetWeight: 65,
-                timeframe: 3,
-                activity: "Test Activity",
-                restrictions: ["None"],
-                preferences: "Test preferences",
-                timestamp: new Date().toISOString()
-            };
-            
-            log(`Data: ${JSON.stringify(data, null, 2)}`);
-            log(`Size: ${JSON.stringify(data).length} bytes`);
-            
-            try {
-                tg.sendData(JSON.stringify(data));
-                log('✅ Data sent successfully!');
+
+        function showInsight() {
+            if (currentStep === 5) {
+                const currentWeight = parseFloat(userData.weight);
+                const targetWeight = parseFloat(document.getElementById('targetWeight').value);
+                const timeline = parseInt(document.getElementById('timeline').value);
                 
-                setTimeout(() => {
-                    tg.close();
-                }, 1000);
-            } catch (error) {
-                log(`❌ Error: ${error.message}`);
+                if (currentWeight && targetWeight && timeline) {
+                    const weightDiff = Math.abs(currentWeight - targetWeight);
+                    const weeklyChange = (weightDiff / (timeline * 4)).toFixed(1);
+                    const isLoss = currentWeight > targetWeight;
+                    
+                    let insight = '';
+                    if (weeklyChange > 1) {
+                        insight = `⚠️ Это довольно амбициозная цель! Рекомендуется ${isLoss ? 'терять' : 'набирать'} не более 0.5-1 кг в неделю для здоровья.`;
+                    } else {
+                        insight = `✅ Отличная цель! ${isLoss ? 'Потеря' : 'Набор'} ${weeklyChange} кг в неделю - это здоровый темп.`;
+                    }
+                    
+                    const insightBox = document.getElementById('timelineInsight');
+                    insightBox.textContent = insight;
+                    insightBox.classList.remove('hidden');
+                }
             }
         }
-        
-        // Initial check
-        checkWebApp();
+
+        function collectData() {
+            // Goal
+            userData.goal = document.querySelector('input[name="goal"]:checked')?.value;
+            
+            // Basic info
+            userData.age = parseInt(document.getElementById('age').value);
+            userData.gender = document.querySelector('input[name="gender"]:checked')?.value;
+            
+            // Physical
+            userData.height = parseInt(document.getElementById('height').value);
+            userData.weight = parseFloat(document.getElementById('weight').value);
+            
+            // Activity
+            userData.activity_level = document.querySelector('input[name="activity"]:checked')?.value;
+            
+            // Target
+            userData.target_weight = parseFloat(document.getElementById('targetWeight').value);
+            userData.timeline_months = parseInt(document.getElementById('timeline').value);
+            
+            // Restrictions
+			const checkboxRestrictions = Array.from(document.querySelectorAll('input[name="restrictions"]:checked'))
+				.map(cb => cb.value);
+				
+			const additionalText = document.getElementById('additionalRestrictions').value;
+			
+			const additionalRestrictions = additionalText 
+				? additionalText.split(',').map(f => f.trim()).filter(f => f)
+				: [];
+			
+			userData.foods_to_avoid = [...checkboxRestrictions, ...additionalRestrictions];
+            
+            // Preferences
+            const preferred = document.getElementById('preferredFoods').value;
+            userData.preferred_foods = preferred ? preferred.split(',').map(f => f.trim()).filter(f => f) : [];
+        }
+
+        function showSummary() {
+            collectData();
+            
+            const goalText = {
+                'lose_weight': 'Похудеть',
+                'gain_muscle': 'Набрать мышечную массу',
+                'maintain': 'Поддерживать вес'
+            };
+            
+            const genderText = {
+                'male': 'Мужской',
+                'female': 'Женский',
+                'prefer_not_to_say': 'Не указан'
+            };
+            
+            const summary = `
+                <p><strong>Цель:</strong> ${goalText[userData.goal]}</p>
+                <p><strong>Возраст:</strong> ${userData.age} лет</p>
+                <p><strong>Пол:</strong> ${genderText[userData.gender]}</p>
+                <p><strong>Рост:</strong> ${userData.height} см</p>
+                <p><strong>Текущий вес:</strong> ${userData.weight} кг</p>
+                <p><strong>Целевой вес:</strong> ${userData.target_weight} кг</p>
+                <p><strong>Срок:</strong> ${userData.timeline_months} мес.</p>
+				${userData.foods_to_avoid.length > 0 ? 
+					`<p><strong>Исключить:</strong><br>${userData.foods_to_avoid.map(item => 
+						`• ${item}`).join('<br>')}</p>` : ''}
+                ${userData.preferred_foods.length > 0 ? `<p><strong>Предпочтения:</strong> ${userData.preferred_foods.join(', ')}</p>` : ''}
+            `;
+            
+            document.getElementById('summary').innerHTML = summary;
+        }
+
+        function nextStep() {
+            if (currentStep === 8) {
+                submitData();
+                return;
+            }
+            
+            if (!validateStep()) {
+                tg.showAlert('Пожалуйста, заполни все поля');
+                return;
+            }
+            
+            document.getElementById(`step${currentStep}`).classList.add('hidden');
+            currentStep++;
+            document.getElementById(`step${currentStep}`).classList.remove('hidden');
+            
+            updateProgress();
+            updateButtons();
+            
+            if (currentStep === 5) {
+                showInsight();
+            } else if (currentStep === 8) {
+                showSummary();
+            }
+        }
+
+        function previousStep() {
+            document.getElementById(`step${currentStep}`).classList.add('hidden');
+            currentStep--;
+            document.getElementById(`step${currentStep}`).classList.remove('hidden');
+            
+            updateProgress();
+            updateButtons();
+        }
+
+        function updateButtons() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            prevBtn.classList.toggle('hidden', currentStep === 1);
+            nextBtn.textContent = currentStep === 8 ? 'Отправить' : 'Далее';
+        }
+
+        function submitData() {
+            collectData();
+            
+            // Show loading
+            document.getElementById('step8').classList.add('hidden');
+            document.getElementById('navigation').classList.add('hidden');
+            
+            // Send data to Telegram
+            tg.sendData(JSON.stringify(userData));
+            
+            // Show success
+            setTimeout(() => {
+                document.getElementById('success').classList.remove('hidden');
+                
+                // Close after 2 seconds
+                setTimeout(() => {
+                    tg.close();
+                }, 2000);
+            }, 500);
+        }
+
+        // Event listeners for dynamic validation
+        document.getElementById('targetWeight').addEventListener('input', showInsight);
+        document.getElementById('timeline').addEventListener('change', showInsight);
     </script>
 </body>
+</html>
 </html>
